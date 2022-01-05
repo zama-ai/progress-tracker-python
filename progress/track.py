@@ -83,7 +83,7 @@ def track(targets):
 
             id = target["id"]
             name = target["name"]
-            parameters = target["parameters"]
+            parameters = target.get("parameters", {})
 
             if id in output["targets"]:
                 target = output["targets"][id]
