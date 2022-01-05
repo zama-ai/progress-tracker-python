@@ -107,7 +107,8 @@ def track(targets):
                 except:
                     print(traceback.format_exc(), end="")
                     target["working"] = False
-                    del target["measurements"]
+                    if "measurements" in target:
+                        del target["measurements"]
                     break
                 finally:
                     print(termcolor.colored(f"{'-' * len(title)}", "cyan"))
