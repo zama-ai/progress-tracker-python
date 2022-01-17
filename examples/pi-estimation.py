@@ -1,5 +1,5 @@
 import math
-import progress
+import py_progress_tracker as progress
 import random
 
 def estimate_pi(samples):
