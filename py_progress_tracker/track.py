@@ -2,6 +2,7 @@ import colorama
 import cpuinfo
 import inspect
 import json
+import multiprocessing
 import os
 import pathlib
 import platform
@@ -103,13 +104,47 @@ def track(targets):
 
                 print(termcolor.colored(f"{'-' * len(title)}", "cyan"))
                 try:
-                    main(**parameters)
-                except:
-                    print(traceback.format_exc(), end="")
-                    target["working"] = False
-                    if "measurements" in target:
-                        del target["measurements"]
-                    break
+                    def subprocess(channel, parameters):
+                        main(**parameters)
+                        channel.put([METRICS, MEASUREMENTS, ALERTS])
+
+                    channel = multiprocessing.Queue()
+
+                    process = multiprocessing.Process(
+                        name="(Sampler)",
+                        target=subprocess,
+                        args=(channel, parameters),
+                    )
+
+                    try:
+                        process.start()
+                        process.join()
+                        exitcode = process.exitcode
+                    except:
+                        process.terminate()
+                        print("Process (Main):")
+                        print(traceback.format_exc(), end="")
+                        exitcode = 1
+
+                    if exitcode != 0:
+                        target["working"] = False
+                        if "measurements" in target:
+                            del target["measurements"]
+                        break
+
+                    new_metrics, new_measurements, new_alerts = channel.get()
+
+                    METRICS.clear()
+                    for key, value in new_metrics.items():
+                        METRICS[key] = value
+
+                    MEASUREMENTS.clear()
+                    for key, value in new_measurements.items():
+                        MEASUREMENTS[key] = value
+
+                    ALERTS.clear()
+                    for value in new_alerts:
+                        ALERTS.append(value)
                 finally:
                     print(termcolor.colored(f"{'-' * len(title)}", "cyan"))
             else:
