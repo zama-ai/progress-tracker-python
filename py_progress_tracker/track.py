@@ -14,10 +14,10 @@ import urllib
 
 from .state import MEASUREMENTS, METRICS, ALERTS
 
-def track(targets):
+def track(targets, samples=None):
     colorama.init()
 
-    samples = os.environ.get("PROGRESS_SAMPLES", "30")
+    samples = samples if samples is not None else os.environ.get("PROGRESS_SAMPLES", "30")
     output_path = os.environ.get("PROGRESS_OUTPUT", "progress.json")
     output_indent = os.environ.get("PROGRESS_OUTPUT_INDENT", None)
 
@@ -85,6 +85,7 @@ def track(targets):
             id = target["id"]
             name = target["name"]
             parameters = target.get("parameters", {})
+            samples_for_target = target.get("samples", samples)
 
             if id in output["targets"]:
                 target = output["targets"][id]
@@ -94,7 +95,7 @@ def track(targets):
             target["name"] = name
             target["code"] = source
 
-            for i in range(1, samples + 1):
+            for i in range(1, samples_for_target + 1):
                 ALERTS.clear()
 
                 title = f"Sample #{i} of {name}"
@@ -104,15 +105,16 @@ def track(targets):
 
                 print(termcolor.colored(f"{'-' * len(title)}", "cyan"))
                 try:
-                    def subprocess(channel, parameters):
-                        main(**parameters)
-                        channel.put([METRICS, MEASUREMENTS, ALERTS])
+                    class Subprocess:
+                        def __call__(self, channel, parameters):
+                            main(**parameters)
+                            channel.put([METRICS, MEASUREMENTS, ALERTS])
 
                     channel = multiprocessing.Queue()
 
                     process = multiprocessing.Process(
                         name="(Sampler)",
-                        target=subprocess,
+                        target=Subprocess(),
                         args=(channel, parameters),
                     )
 
