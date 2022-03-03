@@ -1,3 +1,4 @@
+import argparse
 import colorama
 import cpuinfo
 import inspect
@@ -16,6 +17,26 @@ from .state import MEASUREMENTS, METRICS, ALERTS
 
 def track(targets, samples=None):
     colorama.init()
+
+    parser = argparse.ArgumentParser(description="""
+
+The behavior of the benchmarks can be customized with the following environment variables:
+
+- PROGRESS_SAMPLES: Number of samples to make (default: 30)
+- PROGRESS_OUTPUT: File to write the JSON output (default: progress.json)
+- PROGRESS_OUTPUT_INDENT: Indentaton of the JSON output (default: None)
+- PROGRESS_MACHINE_NAME: Name of the machine for JSON output (default: inferred)
+- PROGRESS_MACHINE_OS: Operating system of the machine for JSON output (default: inferred)
+- PROGRESS_MACHINE_VCPU: Number of virtual CPUs of the machine for JSON output (default: ignored)
+
+e.g.
+
+PROGRESS_SAMPLES=10 PROGRESS_OUTPUT_INDENT=2 python benchmark.py
+
+""".strip(), formatter_class=argparse.RawTextHelpFormatter)
+    parser.parse_args()
+
+    multiprocessing.set_start_method("fork")
 
     samples = samples if samples is not None else os.environ.get("PROGRESS_SAMPLES", "30")
     output_path = os.environ.get("PROGRESS_OUTPUT", "progress.json")
