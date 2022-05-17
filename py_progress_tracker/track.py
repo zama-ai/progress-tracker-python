@@ -15,10 +15,12 @@ import urllib
 
 from .state import MEASUREMENTS, METRICS, ALERTS
 
+
 def track(targets, samples=None):
     colorama.init()
 
-    parser = argparse.ArgumentParser(description="""
+    parser = argparse.ArgumentParser(
+        description="""
 
 The behavior of the benchmarks can be customized with the following environment variables:
 
@@ -33,8 +35,10 @@ e.g.
 
 PROGRESS_SAMPLES=10 PROGRESS_OUTPUT_INDENT=2 python benchmark.py
 
-""".strip(), formatter_class=argparse.RawTextHelpFormatter)
-    parser.parse_args()
+""".strip(),
+        formatter_class=argparse.RawTextHelpFormatter,
+    )
+    args, unknown = parser.parse_known_args()
 
     multiprocessing.set_start_method("fork")
 
@@ -119,13 +123,14 @@ PROGRESS_SAMPLES=10 PROGRESS_OUTPUT_INDENT=2 python benchmark.py
             for i in range(1, samples_for_target + 1):
                 ALERTS.clear()
 
-                title = f"Sample #{i} of {name}"
+                title = f"Sample #{i} (over {samples_for_target}) of {name}"
 
                 print()
                 print(termcolor.colored(f"{title}", "yellow"))
 
                 print(termcolor.colored(f"{'-' * len(title)}", "cyan"))
                 try:
+
                     class Subprocess:
                         def __call__(self, channel, parameters):
                             main(**parameters)
