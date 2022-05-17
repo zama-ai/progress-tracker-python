@@ -183,7 +183,7 @@ PROGRESS_SAMPLES=10 PROGRESS_OUTPUT_INDENT=2 python benchmark.py
                 for metric, label in METRICS.items():
                     output["metrics"][metric] = {"label": label}
 
-                title = f"{name} over {samples} samples"
+                title = f"{name} over {samples_for_target} samples"
 
                 print()
                 print(termcolor.colored(f"{title}", "green"))
@@ -199,7 +199,7 @@ PROGRESS_SAMPLES=10 PROGRESS_OUTPUT_INDENT=2 python benchmark.py
                 print(termcolor.colored(f"{'-' * len(title)}", "cyan"))
 
             if not target["working"]:
-                title = f"{name} over {samples} samples"
+                title = f"{name} over {samples_for_target} samples"
 
                 print()
                 print(termcolor.colored(f"{title}", "red"))
